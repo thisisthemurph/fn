@@ -136,6 +136,79 @@ func TestContainsPointers(t *testing.T) {
 	})
 }
 
+func TestFirst_Ints(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     []int
+		predicate func(int) bool
+		expected  int
+		found     bool
+	}{
+		{
+			name:      "match exists",
+			input:     []int{1, 2, 3, 4},
+			predicate: func(i int) bool { return i%2 == 0 },
+			expected:  2,
+			found:     true,
+		},
+		{
+			name:      "no match",
+			input:     []int{1, 3, 5},
+			predicate: func(i int) bool { return i%2 == 0 },
+			expected:  0, // zero value for int
+			found:     false,
+		},
+		{
+			name:      "empty input",
+			input:     []int{},
+			predicate: func(i int) bool { return true },
+			expected:  0,
+			found:     false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, ok := First(tc.input, tc.predicate)
+			if got != tc.expected || ok != tc.found {
+				t.Errorf("First() = (%v, %v), want (%v, %v)", got, ok, tc.expected, tc.found)
+			}
+		})
+	}
+}
+
+func TestFirst_Strings(t *testing.T) {
+	input := []string{"apple", "banana", "cherry"}
+	predicate := func(s string) bool { return len(s) > 5 }
+	expected := "banana"
+
+	result, ok := First(input, predicate)
+	if !ok || result != expected {
+		t.Errorf("First() = (%v, %v), want (%v, true)", result, ok, expected)
+	}
+}
+
+func TestFirst_Structs(t *testing.T) {
+	type Person struct {
+		Name string
+		Age  int
+	}
+
+	people := []Person{
+		{"Alice", 30},
+		{"Bob", 40},
+		{"Charlie", 25},
+	}
+
+	predicate := func(p Person) bool { return p.Age > 35 }
+	expected := Person{"Bob", 40}
+
+	result, ok := First(people, predicate)
+	if !ok || result != expected {
+		t.Errorf("First() = (%v, %v), want (%v, true)", result, ok, expected)
+	}
+}
+
 // TestMap tests the Map function with multiple types.
 func TestMap(t *testing.T) {
 	t.Run("int to int", func(t *testing.T) {
